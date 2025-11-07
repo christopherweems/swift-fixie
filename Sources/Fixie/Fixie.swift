@@ -18,7 +18,7 @@ extension Fixie {
             let failFast = args.contains("-e")
             let functionNameArguments = args.filter { !$0.hasPrefix("-") }
             
-            let runner = try await Fixie(scriptPath: scriptPath, failFast: failFast)
+            let runner = try Fixie(scriptPath: scriptPath, failFast: failFast)
             
             if args.contains("--list") {
                 try runner.listFunctions(in: scriptPath)
@@ -66,9 +66,9 @@ struct Fixie {
     let shell: Shell
     let failFast: Bool
     
-    init(scriptPath: FilePath, failFast: Bool) async throws {
+    init(scriptPath: FilePath, failFast: Bool) throws {
         self.shell = try .init(failFast: failFast)
-        await shell.createDefaultFixieList() // if doesn't exist
+        try shell.createDefaultFixieList() // if doesn't exist
         
         guard let script = Script(scriptPath) else {
             throw FixieError.scriptNotFound(scriptPath.string)
@@ -205,7 +205,8 @@ enum FixieError: Error, CustomStringConvertible {
 
 extension String {
     fileprivate var removingTrailingCodeComment: Substring {
-        let commentSymbols = ["//"]
+        // TODO: Write a parser, we're depending on the space to miss `https://...`, and we're missing lines starting with `//`
+        let commentSymbols = [" //"]
         
         for symbol in commentSymbols {
             guard let commentStartIndex = self.firstRange(of: symbol)?.lowerBound else { continue }
@@ -249,23 +250,37 @@ extension StringProtocol {
 }
 
 extension Shell {
-    // TODO: Don't create ~/.fixie/list if operator has any other named sheets
-    fileprivate func createDefaultFixieList() async {
-        do { for try await _ in try run(#"""
-        mkdir -p ~/.fixie;
-        set -o noclobber
-        cat > ~/.fixie/list <<'EOF'
-        func openGithubRepo() {
-            githubRepoURL="https://github.com/christopherweems/swift-fixie/"
-            if [[ "$(uname)" == "Darwin" ]]; then open "$githubRepoURL"
-            elif command -v xdg-open >/dev/null; then xdg-open "$githubRepoURL"
-            else echo "No known URL opener found on this system."
-            fi
+    // TODO: Avoid creating `~/.fixie/list` if operator has other named sheets (it may have been intentionally deleted)
+    fileprivate func createDefaultFixieList() throws {
+        let fm = FileManager.default
+        let dir = fm.homeDirectoryForCurrentUser.appendingPathComponent(".fixie", isDirectory: true)
+        
+        try? fm.createDirectory(
+            at: dir,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: NSNumber(value: Int16(0o700))],
+        )
+        
+        let listURL = dir.appendingPathComponent("list")
+        
+        if !fm.fileExists(atPath: listURL.path) {
+            let template = """
+            // Opens project README in fixie pager
+            func quickstart() {
+              if command -v less >/dev/null; then
+                curl -fsSL https://raw.githubusercontent.com/christopherweems/swift-fixie/main/README.md | less
+              else
+                curl -fsSL https://raw.githubusercontent.com/christopherweems/swift-fixie/main/README.md
+              fi
+            }
+            """
+            try template.write(to: listURL, atomically: true, encoding: .utf8)
+            
+            try? fm.setAttributes(
+                [.posixPermissions: NSNumber(value: Int16(0o600))],
+                ofItemAtPath: listURL.path,
+            )
         }
-        EOF
-        """#) { } } catch { }
-        
-        
     }
     
 }

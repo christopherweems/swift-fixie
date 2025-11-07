@@ -6,8 +6,8 @@ Workflows are defined in `~/.fixie/list` using a Swift-shaped function syntax (w
 
 ```.fixie/list
 func build() {
-    cd ~/project
-    swift build
+  cd ~/project
+  swift build
 }
 ```
 
@@ -48,33 +48,36 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 
 Your workflows live in your `~/.fixie/list`
 
-If this file does not exist, fixie creates it with an `openFixieGithubRepo()` workflow on first run.
+If this file does not exist, fixie creates it with a `quickstart()` workflow on first run.
 
 
 ```.fixie/list
-func buildDemo() {
-    cd ~/Sources/demo
-    swift build
-    echo "Done."
+// Opens project README in fixie pager
+func quickstart() {
+  if command -v less >/dev/null; then
+    curl -fsSL https://raw.githubusercontent.com/christopherweems/swift-fixie/main/README.md | less
+  else
+    curl -fsSL https://raw.githubusercontent.com/christopherweems/swift-fixie/main/README.md
+  fi
 }
 ```
 
 Run it:
 ```bash
-fixie buildDemo
+fixie quickstart
 ```
 
 Multiple workflows can be defined in the same file:
 
 ```.fixie/list
 func serveDemoHTTPServer() {
-    cd ~/Sources/demo
-    python3 -m http.server 8080
+  cd ~/Sources/demo
+  python3 -m http.server 8080
 }
 
 func cleanBuildDirectory() {
-    cd ~/Sources/demo
-    rm -rf .build
+  cd ~/Sources/demo
+  rm -rf .build
 }
 ```
 
@@ -85,9 +88,9 @@ func cleanBuildDirectory() {
 fixie --list
 ```
 
-Outputs something like:
+Looks like:
 ```bash
-- buildDemo()
+- quickstart()
 - serveDemoHTTPServer()
 - cleanBuildDirectory()
 ```
@@ -99,27 +102,27 @@ Workflows should normally cd into the directory they act on:
 
 ```.fixie/list
 func serveDemoHTTPServer() {
-    cd ~/Sources/demo
-    python3 -m http.server 8080
+  cd ~/Sources/demo
+  python3 -m http.server 8080
 }
 ```
 
-If a workflow does not include a `cd` as its first _non-var-setting_ line, use: 
+If a workflow does not include a `cd` among its first lines (variable declarations are allowed ahead), use: 
 
 ```.fixie/list
-fixie --here workflowName
+fixie workflowName --here
 ```
 
-This prevents accidental operations in the wrong directory. Functions that don't specify a working directory will not run without `--here`.
+This prevents accidental operations in the wrong directory. Functions without a working directory won't run without `--here`.
 
 
 ## Execution Model
 
-- Workflows run sequentially in a persistent shell across all named function calls. (Side effects are allowed.)
+- Workflows are chainable, run in the same persistent shell, and can forward information through environment values.
 - Output streams live to console.
 - If a command exits non-zero, execution stops immediately with `-e` (fail fast).
 
-### Example call: `fixie buildDemo`
+### Example: `fixie buildDemo`
 
 ```bash
 ────────────────────────────────────────
@@ -149,9 +152,8 @@ a way to avoid re-typing the same steps every day
 
 ## Roadmap
 
-- Add `openFixieGithubRepo()` example workflow on first run
 - `@WorkingDirectory("/var/www/")` function attribute to specify working directory safely, deprecating `cd` in script bodies after introduction.
-- `--here` enforcement for non-`cd` workflows, start with "no `cd` no run" policy with guidance to put cd as first line, or first immediately after a list of variable declarations. A workflow using more than one cd requires `--unsafe` specifier. Consider replacing/skipping all of this for `@WorkingDirectory()` attribute on the workflow, which would put the safety burden on the author of the workflow and not on the operator. But for now `--here` and `--unsafe` are your escape hatches.
+- `--here` enforcement for non-`cd` workflows, start with "no `cd` no run" policy with guidance to put cd as first line, or first immediately after a list of variable declarations. A workflow using more than one cd requires `--unsafe` specifier. Consider replacing/skipping all of this for `@WorkingDirectory` attribute on the workflow, which would put the safety burden on the author of the workflow and not on the operator. But for now `--here` and `--unsafe` are your escape hatches.
 
 - `.fixie/macros` for named sequences of workflows automations created by operators of `fixie` (not hand-authored).
 - `fixie workflowName --source` to see full source for any workflow, and `fixie workflowName --copy` to copy it to your pasteboard.
