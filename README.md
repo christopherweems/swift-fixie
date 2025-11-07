@@ -90,9 +90,9 @@ fixie --list
 
 Outputs something like:
 ```bash
-(1) buildDemo()
-(2) serveDemoHTTPServer()
-(3) cleanProjectBuildDirectory()
+- buildDemo()
+- serveDemoHTTPServer()
+- cleanProjectBuildDirectory()
 ```
 
 
