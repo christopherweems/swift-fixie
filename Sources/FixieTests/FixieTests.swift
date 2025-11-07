@@ -4,5 +4,7 @@
 // Copyright (c) 2025 Christopher Weems
 // SPDX-License-Identifier: MIT
 
+import Testing
+
 @Test
 func testFixie() async throws { }
