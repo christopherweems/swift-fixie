@@ -68,7 +68,7 @@ struct Fixie {
     
     init(scriptPath: FilePath, failFast: Bool) async throws {
         self.shell = try .init(failFast: failFast)
-        await shell.touchFixieMain() // create `.fixie/list`
+        await shell.createDefaultFixieList() // if doesn't exist
         
         guard let script = Script(scriptPath) else {
             throw FixieError.scriptNotFound(scriptPath.string)
@@ -249,9 +249,23 @@ extension StringProtocol {
 }
 
 extension Shell {
-    fileprivate func touchFixieMain() async {
-        do { for try await _ in try run("mkdir   -p ~/.fixie") { } } catch { }
-        do { for try await _ in try run("touch ~/.fixie/list") { } } catch { }
+    // TODO: Don't create ~/.fixie/list if operator has any other named sheets
+    fileprivate func createDefaultFixieList() async {
+        do { for try await _ in try run(#"""
+        mkdir -p ~/.fixie;
+        set -o noclobber
+        cat > ~/.fixie/list <<'EOF'
+        func openGithubRepo() {
+            githubRepoURL="https://github.com/christopherweems/swift-fixie/"
+            if [[ "$(uname)" == "Darwin" ]]; then open "$githubRepoURL"
+            elif command -v xdg-open >/dev/null; then xdg-open "$githubRepoURL"
+            else echo "No known URL opener found on this system."
+            fi
+        }
+        EOF
+        """#) { } } catch { }
+        
+        
     }
     
 }
