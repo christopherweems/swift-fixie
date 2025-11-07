@@ -2,7 +2,7 @@
 
 `fixie` is a small CLI tool for running named shell workflows.
 
-Workflows are defined in a script file at `~/.fixie/list` using a Swift-shaped function syntax (with Bash commands inside):
+Workflows are defined in `~/.fixie/list` using a Swift-shaped function syntax (with Bash commands inside):
 
 ```.fixie/list
 func build() {
@@ -38,9 +38,7 @@ cp ./.build/release/fixie ~/.local/bin/
 ```bash
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 ```
-
 or for zsh:
-
 ```zsh
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 ```
@@ -48,10 +46,9 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 
 ## Workflow Script
 
-Your workflows live in:
-`~/.fixie/list`
+Your workflows live in your `~/.fixie/list`
 
-If this file does not exist, fixie creates it on first run.
+If this file does not exist, fixie creates it with an `openFixieGithubRepo()` workflow on first run.
 
 
 ```.fixie/list
@@ -75,7 +72,7 @@ func serveDemoHTTPServer() {
     python3 -m http.server 8080
 }
 
-func cleanProjectBuildDirectory() {
+func cleanBuildDirectory() {
     cd ~/Sources/demo
     rm -rf .build
 }
@@ -92,7 +89,7 @@ Outputs something like:
 ```bash
 - buildDemo()
 - serveDemoHTTPServer()
-- cleanProjectBuildDirectory()
+- cleanBuildDirectory()
 ```
 
 
@@ -152,6 +149,7 @@ a way to avoid re-typing the same steps every day
 
 ## Roadmap
 
+- Add `openFixieGithubRepo()` example workflow on first run
 - `@WorkingDirectory("/var/www/")` function attribute to specify working directory safely, deprecating `cd` in script bodies after introduction.
 - `--here` enforcement for non-`cd` workflows, start with "no `cd` no run" policy with guidance to put cd as first line, or first immediately after a list of variable declarations. A workflow using more than one cd requires `--unsafe` specifier. Consider replacing/skipping all of this for `@WorkingDirectory()` attribute on the workflow, which would put the safety burden on the author of the workflow and not on the operator. But for now `--here` and `--unsafe` are your escape hatches.
 
