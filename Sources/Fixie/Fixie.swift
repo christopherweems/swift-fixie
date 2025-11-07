@@ -25,28 +25,12 @@ extension Fixie {
                 return
             }
             
-            let scriptFunctions = Array(runner.script.allFunctions)
-            
-            // convert `--list` indices into function names:
-            let requestedFunctions = try functionNameArguments.map { token -> String in
-                if let i = Int(token) {
-                    let index = i - 1 // since list is 1-based
-                    guard scriptFunctions.indices.contains(index) else {
-                        throw FixieError.unknownFunctionIndex(i, max: scriptFunctions.count)
-                    }
-                    return scriptFunctions[index].name
-                    
-                } else {
-                    return token
-                }
-            }
-            
-            if requestedFunctions.isEmpty || requestedFunctions.contains(where: { $0.hasPrefix("-") }) {
+            if functionNameArguments.isEmpty || functionNameArguments.contains(where: { $0.hasPrefix("-") }) {
                 print("Usage: fixie <func1> <func2> ...")
                 return
             }
             
-            for functionName in requestedFunctions {
+            for functionName in functionNameArguments {
                 guard let funcDecl = runner.script[function: functionName] else {
                     if failFast {
                         throw FixieError.unknownFunction(functionName)
@@ -202,7 +186,6 @@ extension Fixie {
 enum FixieError: Error, CustomStringConvertible {
     case scriptNotFound(String)
     case unknownFunction(String)
-    case unknownFunctionIndex(_ index: Int, max: Int)
     case commandFailed(String)
     case noStdin
     case shellFailed(Int32)
@@ -211,7 +194,6 @@ enum FixieError: Error, CustomStringConvertible {
         switch self {
         case .scriptNotFound(let p): return "Script not found at \(p)"
         case .unknownFunction(let f): return "Unknown function: \(f)()"
-        case .unknownFunctionIndex(let i, _): return "Unknown function index: \(i)()"
         case .commandFailed(let c): return "Command Failed: \(c)"
         case .noStdin: return "Persistent shell stdin unavailable"
         case .shellFailed(let code): return "Shell exited with code \(code)"

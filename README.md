@@ -152,7 +152,6 @@ a way to avoid re-typing the same steps every day
 
 ## Roadmap
 
-- Call workflows by index (save time with `fixie 1 3` vs `fixie buildDemo serveDemoHTTPServer`) 
 - `--here` enforcement for non-cd workflows
 - `--define` to show full source for any workflow
 - `.fixie/macros` for named sequences of workflows
