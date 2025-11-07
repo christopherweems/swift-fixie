@@ -107,13 +107,13 @@ func serveDemoHTTPServer() {
 }
 ```
 
-If a workflow does not include a cd as its first meaningful line, use: 
+If a workflow does not include a `cd` as its first meaningful line, use: 
 
 ```.fixie/main
 fixie --here workflowName
 ```
 
-This prevents accidental operations in the wrong directory.
+This prevents accidental operations in the wrong directory. Functions that don't specify a working directory will not run without `--here`.
 
 
 ## Execution Model
@@ -134,7 +134,7 @@ Done.
 ```
 
 
-## Project philosophy
+## Project Philosophy
 
 fixie is not:
 ```
@@ -152,9 +152,11 @@ a way to avoid re-typing the same steps every day
 
 ## Roadmap
 
-- `--here` enforcement for non-cd workflows
-- `--define` to show full source for any workflow
-- `.fixie/macros` for named sequences of workflows
+- `--here` enforcement for non-`cd` workflows, start with "no `cd` no run" policy with guidance to put cd as first line, or first immediately after a list of variable declarations. A workflow using more than one cd requires `--unsafe` specifier. Consider replacement all of this with `@WorkingDirectory()` attribute on the workflow, which would put the safety burden on the author of the workflow and not on the operator. But for now `--here` and `--unsafe` are your escape hatches.
+- `fixie workflowName --source` to see full source for any workflow, and `fixie workflowName --copy` to copy it to your pasteboard.
+- `@WorkingDirectory("/var/www/")` function attribute to specify working directory safely, deprecating `cd` in script bodies after introduction.
+- `.fixie/macros` for named sequences of workflows created by operators of `fixie` (not hand-authored).
+- Function calling inside of a sheet. Recursion is disallowed, but small helper functions are needed inside of sheets to prevent brittle reuse by copy/pasta.
 
 
 ## License
