@@ -143,10 +143,8 @@ extension Fixie {
         ────────────────────────────────────────    
         """)
         
-        print("")
-        
-        for (index, f) in script.allFunctions.enumerated() {
-            print("\(index + 1): \(f.name)()")
+        for f in script.allFunctions {
+            print("- \(f.name)()")
         }
         
         print("")
