@@ -94,7 +94,7 @@ extension Fixie {
             
             guard await Shell.isCompleteFragment(fragment) else { continue }
             
-            print("• \(fragment.trimmedReplacingNewlinesWithVisible)")
+            print(" • \(fragment.trimmedReplacingNewlinesWithVisible)")
             try await runFragment(fragment)
             fragment = ""
         }
@@ -144,7 +144,7 @@ extension Fixie {
         """)
         
         for f in script.allFunctions {
-            print("- \(f.name)()")
+            print(" - \(f.name)()")
         }
         
         print("")
