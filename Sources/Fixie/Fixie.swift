@@ -11,7 +11,7 @@ import Foundation
 extension Fixie {
     static func main() async throws {
         let home = FileManager.default.homeDirectoryForCurrentUser
-        let scriptPath = FilePath(home.path).appending(".fixie/main")
+        let scriptPath = FilePath(home.path).appending(".fixie/list")
         
         do {
             let args = CommandLine.arguments.dropFirst()
@@ -68,7 +68,7 @@ struct Fixie {
     
     init(scriptPath: FilePath, failFast: Bool) async throws {
         self.shell = try .init(failFast: failFast)
-        await shell.touchFixieMain() // create `.fixie/main`
+        await shell.touchFixieMain() // create `.fixie/list`
         
         guard let script = Script(scriptPath) else {
             throw FixieError.scriptNotFound(scriptPath.string)
@@ -251,7 +251,7 @@ extension StringProtocol {
 extension Shell {
     fileprivate func touchFixieMain() async {
         do { for try await _ in try run("mkdir   -p ~/.fixie") { } } catch { }
-        do { for try await _ in try run("touch ~/.fixie/main") { } } catch { }
+        do { for try await _ in try run("touch ~/.fixie/list") { } } catch { }
     }
     
 }

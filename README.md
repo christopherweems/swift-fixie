@@ -2,9 +2,9 @@
 
 `fixie` is a small CLI tool for running named shell workflows.
 
-Workflows are defined in a script file at `~/.fixie/main` using a Swift-shaped function syntax (with Bash commands inside):
+Workflows are defined in a script file at `~/.fixie/list` using a Swift-shaped function syntax (with Bash commands inside):
 
-```.fixie/main
+```.fixie/list
 func build() {
     cd ~/project
     swift build
@@ -49,12 +49,12 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 ## Workflow Script
 
 Your workflows live in:
-`~/.fixie/main`
+`~/.fixie/list`
 
 If this file does not exist, fixie creates it on first run.
 
 
-```.fixie/main
+```.fixie/list
 func buildDemo() {
     cd ~/Sources/demo
     swift build
@@ -69,7 +69,7 @@ fixie buildDemo
 
 Multiple workflows can be defined in the same file:
 
-```.fixie/main
+```.fixie/list
 func serveDemoHTTPServer() {
     cd ~/Sources/demo
     python3 -m http.server 8080
@@ -100,16 +100,16 @@ Outputs something like:
 
 Workflows should normally cd into the directory they act on:
 
-```.fixie/main
+```.fixie/list
 func serveDemoHTTPServer() {
     cd ~/Sources/demo
     python3 -m http.server 8080
 }
 ```
 
-If a workflow does not include a `cd` as its first meaningful line, use: 
+If a workflow does not include a `cd` as its first _non-var-setting_ line, use: 
 
-```.fixie/main
+```.fixie/list
 fixie --here workflowName
 ```
 
@@ -120,7 +120,7 @@ This prevents accidental operations in the wrong directory. Functions that don't
 
 - Workflows run sequentially in a persistent shell across all named function calls. (Side effects are allowed.)
 - Output streams live to console.
-- If a command exits non-zero, execution stops immeiately with `-e` (fail fast).
+- If a command exits non-zero, execution stops immediately with `-e` (fail fast).
 
 ### Example call: `fixie buildDemo`
 
@@ -152,11 +152,13 @@ a way to avoid re-typing the same steps every day
 
 ## Roadmap
 
-- `--here` enforcement for non-`cd` workflows, start with "no `cd` no run" policy with guidance to put cd as first line, or first immediately after a list of variable declarations. A workflow using more than one cd requires `--unsafe` specifier. Consider replacement all of this with `@WorkingDirectory()` attribute on the workflow, which would put the safety burden on the author of the workflow and not on the operator. But for now `--here` and `--unsafe` are your escape hatches.
-- `fixie workflowName --source` to see full source for any workflow, and `fixie workflowName --copy` to copy it to your pasteboard.
 - `@WorkingDirectory("/var/www/")` function attribute to specify working directory safely, deprecating `cd` in script bodies after introduction.
-- `.fixie/macros` for named sequences of workflows created by operators of `fixie` (not hand-authored).
-- Function calling inside of a sheet. Recursion is disallowed, but small helper functions are needed inside of sheets to prevent brittle reuse by copy/pasta.
+- `--here` enforcement for non-`cd` workflows, start with "no `cd` no run" policy with guidance to put cd as first line, or first immediately after a list of variable declarations. A workflow using more than one cd requires `--unsafe` specifier. Consider replacing/skipping all of this for `@WorkingDirectory()` attribute on the workflow, which would put the safety burden on the author of the workflow and not on the operator. But for now `--here` and `--unsafe` are your escape hatches.
+
+- `.fixie/macros` for named sequences of workflows automations created by operators of `fixie` (not hand-authored).
+- `fixie workflowName --source` to see full source for any workflow, and `fixie workflowName --copy` to copy it to your pasteboard.
+- Allow arbitrary names for items in `.fixie/` (default `list` also renamable without penalty)
+- Function calling. Recursion is disallowed, but small helper functions are needed to prevent brittle reuse in copy/pasta.
 
 
 ## License
