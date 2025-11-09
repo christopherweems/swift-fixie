@@ -273,6 +273,12 @@ extension Shell {
                 curl -fsSL https://raw.githubusercontent.com/christopherweems/swift-fixie/main/README.md
               fi
             }
+            
+            func editList() {
+                cd ~/.fixie
+                open -a Xcode list
+            }
+            
             """
             try template.write(to: listURL, atomically: true, encoding: .utf8)
             
