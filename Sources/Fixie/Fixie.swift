@@ -205,8 +205,8 @@ enum FixieError: Error, CustomStringConvertible {
 
 extension String {
     fileprivate var removingTrailingCodeComment: Substring {
-        // TODO: Write a parser, we're depending on the space to miss `https://...`, and we're missing lines starting with `//`
-        let commentSymbols = [" //"]
+        // TODO: Write a parser or escape sequence, we've tried adding a space to miss `https://...`
+        let commentSymbols = ["//"]
         
         for symbol in commentSymbols {
             guard let commentStartIndex = self.firstRange(of: symbol)?.lowerBound else { continue }
