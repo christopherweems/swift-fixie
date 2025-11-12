@@ -25,6 +25,19 @@ extension Fixie {
                 return
             }
             
+            #if os(macOS)
+            if args.contains("--edit") {
+                try await runner.run(.init(name: "edit-main-list-macOS", body: """
+                cd ~/.fixie
+                // ˅ TODO: Check if any other lists are defined in this directory and skip creating the default one
+                // (allow renaming `list` as `main`, `functions`, `help`, etc.)
+                touch list
+                xed list
+                """), failFast: true)
+                return
+            }
+            #endif
+            
             if functionNameArguments.isEmpty || functionNameArguments.contains(where: { $0.hasPrefix("-") }) {
                 print("Usage: fixie <func1> <func2> ...")
                 return
