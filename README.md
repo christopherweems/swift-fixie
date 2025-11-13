@@ -2,7 +2,7 @@
 
 `fixie` is a small CLI tool for running named shell workflows.
 
-Workflows are defined in `~/.fixie/list` using a Swift-shaped function syntax (with Bash commands inside):
+Workflows are defined in `~/.fixie/list` using a Swift-shaped function syntax that your Bash script lives inside:
 
 ```.fixie/list
 func build() {
@@ -11,7 +11,7 @@ func build() {
 }
 ```
 
-Run it:
+Running it:
 
 ```bash
 fixie build
@@ -46,9 +46,9 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 
 ## Workflow Script
 
-Your workflows live in your `~/.fixie/list`
+Your workflows live in a hidden file in your user directory at `~/.fixie/list`
 
-If this file does not exist, fixie creates it with a `quickstart()` workflow on first run.
+If this file does not exist, fixie creates it with an example `quickstart()` workflow on first run.
 
 
 ```.fixie/list
