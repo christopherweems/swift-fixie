@@ -47,9 +47,9 @@ extension Script {
         parseFunctions(from: rawContent)
     }
     
-    subscript(function name: String) -> FunctionDecl? {
+    subscript(function name: String, namespace namespace: String?) -> FunctionDecl? {
         // TODO: Refactor to not compute entire script tree
-        allFunctions.first(where: { $0.name == name })
+        allFunctions.first { if let namespace { $0.name == "\(namespace)::\(name)" } else { $0.name == name } }
     }
     
 }

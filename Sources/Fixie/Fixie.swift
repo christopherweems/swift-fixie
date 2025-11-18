@@ -13,20 +13,18 @@ extension Fixie {
         let home = FileManager.default.homeDirectoryForCurrentUser
         let scriptPath = FilePath(home.path).appending(".fixie/list")
         
+        let input = OperatorInput()
+        
         do {
-            let args = CommandLine.arguments.dropFirst()
-            let failFast = args.contains("-e")
-            let functionNameArguments = args.filter { !$0.hasPrefix("-") }
+            let runner = try Fixie(scriptPath: scriptPath, failFast: input.shouldFailFast)
             
-            let runner = try Fixie(scriptPath: scriptPath, failFast: failFast)
-            
-            if args.contains("--list") {
+            switch input.flag {
+            case .list:
                 try runner.listFunctions(in: scriptPath)
                 return
-            }
-            
-            #if os(macOS)
-            if args.contains("--edit") {
+                
+            case .edit:
+                #if os(macOS)
                 try await runner.run(.init(name: "edit-main-list-macOS", body: """
                 cd ~/.fixie
                 // ˅ TODO: Check if any other lists are defined in this directory and skip creating the default one
@@ -35,17 +33,25 @@ extension Fixie {
                 xed list
                 """), failFast: true)
                 return
+                
+                #else
+                print("Missing `--edit` implementation")
+                return
+                
+                #endif
+                
+            case nil:
+                break
             }
-            #endif
             
-            if functionNameArguments.isEmpty || functionNameArguments.contains(where: { $0.hasPrefix("-") }) {
+            if input.functionNames.isEmpty || input.functionNames.contains(where: { $0.1.hasPrefix("-") }) {
                 print("Usage: fixie <func1> <func2> ...")
                 return
             }
             
-            for functionName in functionNameArguments {
-                guard let funcDecl = runner.script[function: functionName] else {
-                    if failFast {
+            for (namespace, functionName) in input.functionNames {
+                guard let funcDecl = runner.script[function: functionName, namespace: namespace] else {
+                    if input.shouldFailFast {
                         throw FixieError.unknownFunction(functionName)
                         
                     } else {
@@ -55,9 +61,9 @@ extension Fixie {
                 }
                 
                 //
-                printFunctionHeader(name: functionName)
-                try await runner.run(funcDecl, failFast: failFast)
-                printFunctionHeader(name: functionName, endVerb: "completed")
+                printFunctionHeader(name: functionName, namespace: namespace)
+                try await runner.run(funcDecl, failFast: input.shouldFailFast)
+                printFunctionHeader(name: functionName, namespace: namespace, endVerb: "completed")
                 
             }
             
@@ -168,7 +174,14 @@ extension Fixie {
 }
 
 extension Fixie {
-    fileprivate static func printFunctionHeader(name functionName: String, endVerb: String? = nil, error: (any Error)? = nil) {
+    fileprivate static func printFunctionHeader(
+        name functionName: String,
+        namespace: String?,
+        endVerb: String? = nil,
+        error: (any Error)? = nil,
+    ) {
+        let functionName = if let namespace { "\(namespace)::\(functionName)" } else { functionName }
+        
         switch endVerb {
         case nil: // start
             print("""
