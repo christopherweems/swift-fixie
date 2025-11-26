@@ -20,7 +20,14 @@ struct OperatorInput {
         let args = CommandLine.arguments.dropFirst() // first is `fixie`
         let functionNameArguments = args.filter { !$0.hasPrefix("-") }
         
-        flag = if args.contains("--edit") { .edit } else if args.contains("--list") { .list } else { nil }
+        flag = if args.contains("--edit") {
+            .edit
+        } else if args.contains("--list") || args.contains("--help") {
+            .list
+        } else {
+            nil
+        }
+        
         shouldFailFast = args.contains("-e")
         
         var currentNamespace: String? = nil
