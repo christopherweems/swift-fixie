@@ -19,15 +19,23 @@ let package = Package(
         .executableTarget(
             name: "Fixie",
             dependencies: [
-                .product(name: "Subprocess", package: "swift-subprocess"),
+                "FixieCore",
             
+            ],
+        ),
+        
+        .target(
+            name: "FixieCore",
+            dependencies: [
+                .product(name: "Subprocess", package: "swift-subprocess"),
+                
             ],
         ),
         
         .testTarget(
             name: "FixieTests",
             dependencies: [
-                "Fixie",
+                "FixieCore",
                 
             ],
         )

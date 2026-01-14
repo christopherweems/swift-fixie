@@ -7,6 +7,7 @@
 import Subprocess
 import SystemPackage
 import Foundation
+@_spi(FixieInternal) import FixieCore
 
 extension Fixie {
     static func main() async throws {
@@ -205,28 +206,6 @@ extension Fixie {
 }
 
 
-// MARK: - Errors
-
-enum FixieError: Error, CustomStringConvertible {
-    case scriptNotFound(String)
-    case unknownFunction(String)
-    case commandFailed(String)
-    case noStdin
-    case shellFailed(Int32)
-
-    var description: String {
-        switch self {
-        case .scriptNotFound(let p): return "Script not found at \(p)"
-        case .unknownFunction(let f): return "Unknown function: \(f)()"
-        case .commandFailed(let c): return "Command Failed: \(c)"
-        case .noStdin: return "Persistent shell stdin unavailable"
-        case .shellFailed(let code): return "Shell exited with code \(code)"
-        }
-    }
-    
-}
-
-
 // MARK: - Helper Extensions
 
 extension String {
@@ -254,25 +233,6 @@ extension Shell {
         return result?.terminationStatus == .exited(0)
     }
     
-}
-
-extension StringProtocol {
-    /// Displays multi-line fragments inline, replacing newlines with a visible marker.
-    fileprivate var trimmedReplacingNewlinesWithVisible: String {
-        self
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .replacingOccurrences(of: "\n", with: " ↩ ")
-            .replacingOccurrences(of: "\r", with: " ↩ ")
-            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
-    }
-    
-    internal var trimmingTrailingNewlines: String {
-        var s = String(self)
-        while s.hasSuffix("\n") || s.hasSuffix("\r") {
-            s.removeLast()
-        }
-        return s
-    }
 }
 
 extension Shell {

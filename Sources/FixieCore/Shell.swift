@@ -8,13 +8,13 @@ import Subprocess
 import Foundation
 import RegexBuilder
 
-final class Shell {
+public final class Shell {
     private let process = Process()
     private let inPipe = Pipe()
     private let outPipe = Pipe()
     private let errPipe = Pipe()
     
-    init(failFast: Bool) throws {
+    public init(failFast: Bool) throws {
         process.executableURL = URL(fileURLWithPath: "/bin/bash")
         process.arguments = ["-l"]
         process.standardInput = inPipe
@@ -43,7 +43,7 @@ final class Shell {
 }
 
 extension Shell {
-    func run(_ command: some StringProtocol) throws -> some AsyncSequence<Data, any Error> {
+    public func run(_ command: some StringProtocol) throws -> some AsyncSequence<Data, any Error> {
         let token = sentinelToken(for: UUID())
         
         var fragment = command.trimmingTrailingNewlines
@@ -117,7 +117,7 @@ extension Shell {
         return chunk.firstMatch(of: fullExpression)
     }
     
-    func prefixTrimmingSentinelToken(from chunk: String) -> (Substring, containsToken: Bool) {
+    public func prefixTrimmingSentinelToken(from chunk: String) -> (Substring, containsToken: Bool) {
         guard let match = sentinelTokenMatch(from: chunk) else { return ("", false) }
         return (chunk.prefix(upTo: match.output.0.startIndex), true)
     }
