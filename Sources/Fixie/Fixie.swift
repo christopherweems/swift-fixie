@@ -210,11 +210,17 @@ extension Fixie {
 
 extension String {
     fileprivate var removingTrailingCodeComment: Substring {
-        // TODO: Write a parser or escape sequence, we've tried adding a space to miss `https://...`
+        // removes suffix from "//" as long as it does not belong to `://`
         let commentSymbols = ["//"]
         
         for symbol in commentSymbols {
-            guard let commentStartIndex = self.firstRange(of: symbol)?.lowerBound else { continue }
+            let symbolRange: Range<_>! = self.firstRange(of: symbol)
+            guard let commentStartIndex = symbolRange?.lowerBound else { continue }
+            
+            if self[self.index(before: commentStartIndex)..<symbolRange.upperBound] == "://" {
+                continue
+            }
+            
             return self[..<commentStartIndex]
         }
         
