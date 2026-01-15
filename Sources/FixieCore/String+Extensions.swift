@@ -25,3 +25,23 @@ extension StringProtocol {
     
 }
 
+extension String {
+    public var removingTrailingCodeComment: Substring {
+        // removes suffix from "//" as long as it does not belong to `://`
+        let commentSymbols = ["//"]
+        
+        for symbol in commentSymbols {
+            let symbolRange: Range<_>! = self.firstRange(of: symbol)
+            guard let commentStartIndex = symbolRange?.lowerBound else { continue }
+            
+            if self[self.index(before: commentStartIndex)..<symbolRange.upperBound] == "://" {
+                continue
+            }
+            
+            return self[..<commentStartIndex]
+        }
+        
+        return Substring(self)
+    }
+    
+}

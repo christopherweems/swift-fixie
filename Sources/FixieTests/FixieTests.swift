@@ -22,3 +22,9 @@ func testShell() async throws {
     #expect(result.hasPrefix("s3://123"))
     
 }
+
+@Test
+func testTrimCodeComment() async throws {
+    let noncomment = "echo s3://123".removingTrailingCodeComment
+    #expect(noncomment == "echo s3://123")
+}
