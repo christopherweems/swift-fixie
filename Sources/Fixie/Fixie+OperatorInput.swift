@@ -28,7 +28,8 @@ struct OperatorInput {
             nil
         }
         
-        shouldFailFast = args.contains("-e")
+        // Fixie runs function scripts with `-e` by default, disengage with `--keep-going`
+        shouldFailFast = !args.contains("--keep-going")
         
         var currentNamespace: String? = nil
         var functionNames = [(String?, String)]()
