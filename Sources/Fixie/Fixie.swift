@@ -11,17 +11,16 @@ import Foundation
 
 extension Fixie {
     static func main() async throws {
-        let home = FileManager.default.homeDirectoryForCurrentUser
-        let scriptPath = FilePath(home.path).appending(".fixie/list")
+        let scriptPaths = Self.scriptPaths
         
         let input = OperatorInput()
         
         do {
-            let runner = try Fixie(scriptPath: scriptPath, failFast: input.shouldFailFast)
+            let runner = try Fixie(scriptPaths: scriptPaths, failFast: input.shouldFailFast)
             
             switch input.flag {
             case .list:
-                try runner.listFunctions(in: scriptPath)
+                try runner.listFunctions(in: scriptPaths)
                 return
                 
             case .edit:
@@ -86,15 +85,19 @@ struct Fixie {
     let shell: Shell
     let failFast: Bool
     
-    init(scriptPath: FilePath, failFast: Bool) throws {
+    init(scriptPaths: [FilePath], failFast: Bool) throws {
         self.shell = try .init(failFast: failFast)
         try shell.createDefaultFixieList() // if doesn't exist
         
-        guard let script = Script(scriptPath) else {
-            throw FixieError.scriptNotFound(scriptPath.string)
+        let loadedScripts = scriptPaths.compactMap { Script($0) }
+        
+        if loadedScripts.isEmpty {
+            // construct error based on directory if available, else first path
+            let notFoundTarget = scriptPaths.first?.string ?? FilePath("").string
+            throw FixieError.scriptNotFound(notFoundTarget)
         }
         
-        self.script = script
+        self.script = Script(merging: loadedScripts)
         self.failFast = failFast
         
     }
@@ -152,24 +155,33 @@ extension Fixie {
         }
     }
     
-    fileprivate func listFunctions(in scriptPath: FilePath) throws {
-        guard let script = Script(scriptPath) else {
-            throw FixieError.scriptNotFound(scriptPath.string)
+    fileprivate func listFunctions(in scriptPaths: [FilePath]) throws {
+        let scripts = scriptPaths.compactMap { path -> (FilePath, Script)? in
+            guard let s = Script(path) else { return nil }
+            return (path, s)
         }
-        
+        if scripts.isEmpty {
+            throw FixieError.scriptNotFound(FilePath("").string)
+        }
         print("""
         ────────────────────────────────────────
          🗺️  Functions:
         ────────────────────────────────────────    
         """)
-        
-        for f in script.allFunctions {
-            print(" - \(f.name)()")
+        for (path, s) in scripts {
+            let filename = path.lastComponent?.string ?? path.string
+            if !(s.allFunctions.contains { _ in true }) {
+                print("[\(filename)]")
+            }
+            for f in s.allFunctions {
+                print(" - \(f.name)()")
+            }
+            
+            #if PRINT_FIRST_LIST_ONLY
+            break
+            #endif
         }
-        
         print("")
-        
-        return
     }
     
 }
@@ -257,4 +269,31 @@ extension Shell {
         }
     }
     
+}
+
+extension Fixie {
+    fileprivate static var scriptPaths : [FilePath] {
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        
+        let fixieDir = FilePath(home.path).appending(".fixie")
+        let fm = FileManager.default
+        let dirURL = URL(fileURLWithPath: fixieDir.string, isDirectory: true)
+        let fileURLs = (try? fm.contentsOfDirectory(at: dirURL, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants])) ?? []
+        
+        return {
+            var paths: [FilePath] = fileURLs.compactMap { url in
+                // only include regular files directly under ~/.fixie
+                (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true ? FilePath(url.path) : nil
+            }
+            
+            // move `list` to beginning of script
+            if let listPathIndex = paths.firstIndex(where: { $0.string.hasSuffix("/list") }) {
+                let primaryList = paths[listPathIndex]
+                paths.remove(at: listPathIndex)
+                paths.insert(primaryList, at: 0)
+            }
+            
+            return paths
+        }()
+    }
 }

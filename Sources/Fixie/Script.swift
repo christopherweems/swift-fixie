@@ -20,7 +20,7 @@ struct Script {
     }
     
     //@_spi(FixieInternal)
-    init(rawContent: String) {
+    init?(rawContent: String) {
         self.rawContent = rawContent
         
     }
@@ -121,4 +121,23 @@ extension Script {
         return String(inner.dropLast(2))
     }
     
+}
+
+extension Script {
+    internal init(merging scripts: [Script]) {
+        // naive merge: concatenate all function declarations
+        // Prefer using Script's existing merging if available; this fallback assumes `allFunctions` and initializer from text
+        var text = ""
+        for s in scripts {
+            text += s.rawContent + "\n"
+        }
+        // Use a temporary file-backed initializer if available; else attempt to parse from text via a hypothetical init(_: String)
+        if let merged = Script(rawContent: text) {
+            self = merged
+            
+        } else {
+            // Fallback: pick first as baseline to avoid crash
+            self = scripts[0]
+        }
+    }
 }
