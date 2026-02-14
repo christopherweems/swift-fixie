@@ -22,6 +22,10 @@ let package = Package(
                 "FixieCore",
             
             ],
+            swiftSettings: [
+                .define("PRINT_FIRST_LIST_ONLY"),
+                
+            ],
         ),
         
         .target(
